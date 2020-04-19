@@ -1,0 +1,280 @@
+---
+title: "INFO COVID-19"
+output: 
+  flexdashboard::flex_dashboard:
+    orientation: rows
+    logo: arulogo.png
+    theme: lumen
+---
+
+```{r}
+library(flexdashboard)
+library(jsonlite)
+library(dplyr)
+bd <- fromJSON("https://www.boliviasegura.gob.bo/wp-content/json/api.php")
+aux<-lapply(bd$departamento,as.data.frame)
+t1<-aux[[1]]
+for(i in 2:9){
+t1<-rbind(t1,aux[[i]])
+}
+t1<-t1[,1:5]
+t1<-as.matrix(t1)
+colnames(t1)<-unlist(strsplit(colnames(t1),"[.]"))[rep(c(F,T),5)]
+t1<-addmargins(t1)
+colnames(t1)[6]<-"Total"
+rownames(t1)<-c("LP","CB","SC","OR","PT","TJ","CH","BN","PD","TOTAL")
+```
+
+```{r,echo=F,message=FALSE}
+library(lubridate)
+
+#bdc<-read.csv(url("https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_19-covid-Confirmed.csv"),sep = ",")
+bdc<-read.csv(url("https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_confirmed_global.csv"),sep = ",")
+#bdd<-read.csv(url("https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_19-covid-Deaths.csv"),sep = ",")
+bdd<-read.csv(url("https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_deaths_global.csv"),sep = ",")
+#bdr<-read.csv(url("https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_19-covid-Recovered.csv"),sep = ",")
+bdr<-read.csv(url("https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_recovered_global.csv"),sep = ",")
+
+#aux<-read.csv(url("https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_19-covid-Confirmed.csv"),sep = ",",header = F)
+aux<-read.csv(url("https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_confirmed_global.csv"),sep = ",",header = F)
+
+days<-mdy(as.vector(t(aux[1,-c(1:4)])))
+daysl<-days
+names(bdc)[-c(1:4)]<-days
+names(bdr)[-c(1:4)]<-days
+names(bdd)[-c(1:4)]<-days
+days<-names(bdc)[-c(1:4)]
+
+bdc<-aggregate(bdc[,days],list(bdc$Country.Region),sum)
+bdr<-aggregate(bdr[,days],list(bdr$Country.Region),sum)
+bdd<-aggregate(bdd[,days],list(bdd$Country.Region),sum)
+#save(bdc,bdr,bdd,file="/Users/alvarolimber/Documents/GitHub/EST-383/data/covid-19.Rdata")
+```
+Reportes
+===============================================================
+Row 
+---------------------------------------------------------------
+### Confirmados
+```{r}
+valueBox(bd$contador$confirmados, icon = "fa-pencil",color = "red")
+```
+
+### Decesos
+```{r}
+valueBox(bd$contador$decesos, icon = "fa-pencil",color = "grey")
+```
+
+### Recuperados
+```{r}
+valueBox(bd$contador$recuperados, icon = "fa-pencil",color = "green")
+```
+
+### Tasa de letalidad
+```{r}
+rate1<-round(bd$contador$decesos/bd$contador$confirmados,4)*100
+valueBox(rate1, icon = "fa-pencil",color = "brown")
+```
+
+### Tasa de recuperación
+```{r}
+rate2<-round(bd$contador$recuperados/bd$contador$confirmados,4)*100
+valueBox(rate2, icon = "fa-pencil",color = "darkgreen")
+```
+
+Row 
+---------------------------------------------------------------
+
+### Reporte por departamento
+```{r}
+library(knitr)
+library(kableExtra)
+kable_styling(kable(t1),bootstrap_options = "striped")
+```
+
+### Evolución en el tiempo
+```{r}
+detect0<-function(x){
+  for(i in 1:length(x)){
+    if(x[i]!=0){
+      break()
+    }
+  }
+  return(i)
+}
+  i<-21
+  bb<-as.vector(t(as.matrix(bdc[i,-1])))
+  start<-detect0(bb)
+  days<-days[start:length(bb)]
+  plot(days,bdc[i,days],type = "l",col="red",axes = F,ann = F,xlim=c(min(as.numeric(days)),max(as.numeric(days))+2))
+polygon( 
+  c(min(days), days , max(days)) , 
+  c(min(bdc[i,days]) , bdc[i,days] , min(bdc[i,days])) , 
+  col=rgb(1,0,0,0.6), border=F
+)
+
+points(days,bdd[i,days],type = "l",col="black")
+
+polygon( 
+  c(min(days), days , max(days)) , 
+  c(min(bdd[i,days]) , bdd[i,days] , min(bdd[i,days])) , 
+  col="black", border=F
+)
+
+points(days,bdr[i,days],type = "l",col="darkgreen")
+polygon( 
+  c(min(days), days , max(days)) , 
+  c(min(bdr[i,days]) , bdr[i,days] , min(bdr[i,days])) , 
+  col=rgb(0,1,0,0.6), border=F
+)
+
+
+title(main=bdc[i,"Group.1"],cex.main=2)
+axis(1,days,substr(daysl[start:length(bb)],6,10),las=3,cex.axis=0.7)
+axis(4,pos = days[length(days)],las=1,cex.axis=0.8)
+title(xlab="Fecha",ylab="Casos")
+legend("topleft",legend = c("Infectados","Recuperados","Muertos"),col=c("red","darkgreen","black"),pch = 15)
+```
+
+# Población Vulnerable
+
+Row
+-------------------------------------
+### Población global (todas las edades) por enfermedad crónica
+
+```{r,echo=F}
+library(dplyr)
+library(survey)
+load("~/Documents/GitHub/EST-384/data/eh18.Rdata")
+eh18p<-rename(eh18p,"edad"="s02a_03")
+eh18p<-eh18p %>% mutate(am=edad>=60)
+aux<-levels(eh18p$s04a_01a)
+eh18p<-eh18p %>% mutate(diabetes=(s04a_01a==aux[1] | s04a_01b==aux[1]),corazon=(s04a_01a==aux[4] | s04a_01b==aux[4]),hiper=(s04a_01a==aux[10] | s04a_01b==aux[10]))
+eh18p$diabetes<-(eh18p$diabetes==T); eh18p$diabetes[is.na(eh18p$diabetes)]<-F
+eh18p$corazon<-(eh18p$corazon==T); eh18p$corazon[is.na(eh18p$corazon)]<-F
+eh18p$hiper<-(eh18p$hiper==T); eh18p$hiper[is.na(eh18p$hiper)]<-F
+
+sd18p<-svydesign(~upm,strata=~ estrato,weights = ~factor ,data=eh18p)
+tt1<-rbind(svytable(~diabetes,design = sd18p),
+svytable(~hiper,design = sd18p),
+svytable(~corazon,design = sd18p))
+tt1<-round(tt1,0)
+b2<-barplot((prop.table(tt1,1)*100)[,2],ylim = c(0,2.5),names.arg = c("Diabetes","Hipertensión","Cardiacos"))
+text(b2,(prop.table(tt1,1)*100)[,2],paste0(round((prop.table(tt1,1)*100)[,2],2),"%"),pos = 1)
+text(b2,(prop.table(tt1,1)*100)[,2],paste0(tt1[,2]," Personas"),pos = 3)
+```
+
+### Por departamento y población de 60 años o más
+
+```{r}
+tt2<-cbind(svytable(~depto+diabetes,design=sd18p)[,2],
+svytable(~depto+hiper,design=sd18p)[,2],
+svytable(~depto+corazon,design=sd18p)[,2])
+sd18am<-subset(sd18p,am==T)
+tt2<-cbind(tt2,svytable(~depto+diabetes,design=sd18am)[,2],
+svytable(~depto+hiper,design=sd18am)[,2],
+svytable(~depto+corazon,design=sd18am)[,2])
+tt2<-round(tt2,0)
+colnames(tt2)<-c("Diabetes","Hipertensión","Cardiacos","Diabetes","Hipertensión","Cardiacos")
+tt2<-addmargins(tt2,1)
+rownames(tt2)[10]<-"Total"
+kable_styling(kable(tt2[,4:6]),bootstrap_options = "striped")
+```
+
+# Encuesta de Monitoreo {data-orientation=columns}
+
+```{r}
+library(haven)
+aru<-read_dta("/Users/alvarolimber/Box Sync/covid19_survey/data/covid_v1.dta")
+#mediano plazo
+tb1<-rbind(table(aru$s3_2_1_1),
+table(aru$s3_2_1_2),
+table(aru$s3_2_1_3),
+table(aru$s3_2_1_4),
+table(aru$s3_2_1_5),
+table(aru$s3_2_1_6),
+table(aru$s3_2_1_7))
+tb1<-tb1[,c(4,5,2,3)]
+tb1<-round(prop.table(tb1,1)*100,2)
+rownames(tb1)<-c("Disminuyó los ahorros familiares","Aumento las deudas que tenía","Afectó mi trabajo/negocio","Afectó la salud e los niños/niñas","Afectó la salud de los adultos mayores","Afectó la educación de los niño/as","Tuvimos violencia en el hogar")
+```
+
+
+Rown
+-------------------------------------
+    
+### Impactos de mediano plazo
+    
+```{r}
+mis.colores.3 <- colorRampPalette(c("#99ff99","#9999ff","#ff9999" ))
+par(mai=c(0.9,2,0,0.2))
+barplot(t(tb1),horiz = T,las=1,cex.names = 0.6,xlab = "%",col=mis.colores.3(4),ylim = c(0,9.5))
+legend("topleft",legend = colnames(tb1),col = mis.colores.3(4),lwd = 2,cex = 0.5,horiz = F)
+```
+
+
+Column {.tabset}
+-------------------------------------
+### Alimentación
+    
+```{r}
+library(plotly)
+y1<-round(prop.table(table(aru$s3_2_2_1)[-1])*100,2)
+x1<-c("Compró  alimentos suficientes","Compro menos alimentos que antes","No compró alimentos")
+fig1 <- plot_ly(
+  x = "",
+  y = y1,
+  name = x1,
+  type = "bar",
+  color=c("#99ff99","#9999ff","#ff9999" )
+)
+fig1
+```
+
+### Salud
+    
+```{r}
+y2<-round(prop.table(table(aru$s3_2_2_2)[-1])*100,2)
+x2<-c("Tuvo malestar o se sintió enfermo","Tuvo necesidad de atención de salud","No tuvo ningun problema de salud")
+
+
+fig2 <- plot_ly(
+  x = "",
+  y = y2,
+  name = x2,
+  type = "bar",
+  color=c("#99ff99","#9999ff","#ff9999" )
+)
+fig2
+```
+
+### Empleo
+    
+```{r}
+y3<-round(prop.table(table(aru$s3_2_2_3)[-1])*100,2)
+x3<-c("Trabajó en la misma actividad","Cambio de actividad o negocio","No trabajo")
+fig3 <- plot_ly(
+  x = "",
+  y = y3,
+  name = x3,
+  type = "bar",
+  color=c("#99ff99","#9999ff","#ff9999" )
+)
+fig3
+```
+   
+
+### Ingresos
+    
+```{r}
+y4<-round(prop.table(table(aru$s3_2_2_4)[-1])*100,2)
+x4<-c("Sus ingresos subieron","Sus ingresos se mantuvieron ","Tiene menos ingresos de dinero","Ya no genera ingresos")
+fig4 <- plot_ly(
+  x = "",
+  y = y4,
+  name = x4,
+  type = "bar",
+  color=mis.colores.3(4)
+)
+fig4
+```   
+   
