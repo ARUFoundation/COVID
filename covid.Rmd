@@ -2,6 +2,9 @@
 title: "INFO COVID-19"
 output: 
   flexdashboard::flex_dashboard:
+    social: [ "menu" ]
+    navbar:
+      - { title: "Acerca de Aru", href: "https://www.aru.org.bo", align: right }
     orientation: rows
     logo: arulogo.png
     theme: lumen
@@ -56,29 +59,29 @@ Row
 ---------------------------------------------------------------
 ### Confirmados
 ```{r}
-valueBox(bd$contador$confirmados, icon = "fa-pencil",color = "red")
+valueBox(bd$contador$confirmados, icon = "fa-procedures",color = "brown")
 ```
 
 ### Decesos
 ```{r}
-valueBox(bd$contador$decesos, icon = "fa-pencil",color = "grey")
+valueBox(bd$contador$decesos, icon = "fa-skull",color = "grey")
 ```
 
 ### Recuperados
 ```{r}
-valueBox(bd$contador$recuperados, icon = "fa-pencil",color = "green")
+valueBox(bd$contador$recuperados, icon = "fa-heartbeat",color = "green")
 ```
 
 ### Tasa de letalidad
 ```{r}
 rate1<-round(bd$contador$decesos/bd$contador$confirmados,4)*100
-valueBox(rate1, icon = "fa-pencil",color = "brown")
+valueBox(rate1, icon = "fa-skull",color = "brown")
 ```
 
 ### Tasa de recuperación
 ```{r}
 rate2<-round(bd$contador$recuperados/bd$contador$confirmados,4)*100
-valueBox(rate2, icon = "fa-pencil",color = "darkgreen")
+valueBox(rate2, icon = "fa-heartbeat",color = "darkgreen")
 ```
 
 Row 
@@ -90,6 +93,8 @@ library(knitr)
 library(kableExtra)
 kable_styling(kable(t1),bootstrap_options = "striped")
 ```
+
+> Fuente: Elaboración de Aru en base a información de [Bolivia Segura](https://www.boliviasegura.gob.bo)
 
 ### Evolución en el tiempo
 ```{r}
@@ -127,13 +132,14 @@ polygon(
   col=rgb(0,1,0,0.6), border=F
 )
 
-
 title(main=bdc[i,"Group.1"],cex.main=2)
 axis(1,days,substr(daysl[start:length(bb)],6,10),las=3,cex.axis=0.7)
 axis(4,pos = days[length(days)],las=1,cex.axis=0.8)
 title(xlab="Fecha",ylab="Casos")
 legend("topleft",legend = c("Infectados","Recuperados","Muertos"),col=c("red","darkgreen","black"),pch = 15)
 ```
+
+> Fuente: Elaboración de Aru en base a información de  [CSSE at Johns Hopkins University](https://github.com/CSSEGISandData)
 
 # Población Vulnerable
 
@@ -163,6 +169,8 @@ text(b2,(prop.table(tt1,1)*100)[,2],paste0(round((prop.table(tt1,1)*100)[,2],2),
 text(b2,(prop.table(tt1,1)*100)[,2],paste0(tt1[,2]," Personas"),pos = 3)
 ```
 
+> Fuente: Elaboración de Aru en base a información de la EH-2018 del INE
+
 ### Por departamento y población de 60 años o más
 
 ```{r}
@@ -179,6 +187,8 @@ tt2<-addmargins(tt2,1)
 rownames(tt2)[10]<-"Total"
 kable_styling(kable(tt2[,4:6]),bootstrap_options = "striped")
 ```
+
+> Fuente: Elaboración de Aru en base a información de la EH-2018 del INE
 
 # Encuesta de Monitoreo {data-orientation=columns}
 
@@ -198,39 +208,113 @@ tb1<-round(prop.table(tb1,1)*100,2)
 rownames(tb1)<-c("Disminuyó los ahorros familiares","Aumento las deudas que tenía","Afectó mi trabajo/negocio","Afectó la salud e los niños/niñas","Afectó la salud de los adultos mayores","Afectó la educación de los niño/as","Tuvimos violencia en el hogar")
 ```
 
-
 Rown
 -------------------------------------
     
 ### Impactos de mediano plazo
     
 ```{r}
+library(plotly)
 mis.colores.3 <- colorRampPalette(c("#99ff99","#9999ff","#ff9999" ))
-par(mai=c(0.9,2,0,0.2))
-barplot(t(tb1),horiz = T,las=1,cex.names = 0.6,xlab = "%",col=mis.colores.3(4),ylim = c(0,9.5))
-legend("topleft",legend = colnames(tb1),col = mis.colores.3(4),lwd = 2,cex = 0.5,horiz = F)
+y <- c("Disminuyó los ahorros familiares","Aumento las deudas que tenía","Afectó mi trabajo/negocio","Afectó la salud e los niños/niñas","Afectó la salud de los adultos mayores","Afectó la educación de los niño/as","Tuvimos violencia en el hogar")
+
+data<-data.frame(y,tb1)
+colnames(data)<-c("y","x1","x2","x3","x4")
+x1<-data$x1
+x2<-data$x2
+x3<-data$x3
+x4<-data$x4
+
+top_labels <- c('Nada', 'Poco', 'Moderadamente', 'Mucho')
+
+fig <- plot_ly(data, x = ~x1, y = ~y, type = 'bar', orientation = 'h',
+               marker = list(color = 'rgba(38, 24, 74, 0.8)',
+                             line = list(color = 'rgb(248, 248, 249)', width = 1))) 
+fig <- fig %>% add_trace(x = ~x2, marker = list(color = 'rgba(71, 58, 131, 0.8)')) 
+fig <- fig %>% add_trace(x = ~x3, marker = list(color = 'rgba(122, 120, 168, 0.8)')) 
+fig <- fig %>% add_trace(x = ~x4, marker = list(color = 'rgba(164, 163, 204, 0.85)')) 
+#fig <- fig %>% add_trace(x = ~x5, marker = list(color = 'rgba(190, 192, 213, 1)')) 
+fig <- fig %>% layout(xaxis = list(title = "",
+                                   showgrid = FALSE,
+                                   showline = FALSE,
+                                   showticklabels = FALSE,
+                                   zeroline = FALSE,
+                                   domain = c(0.15, 1)),
+                      yaxis = list(title = "",
+                                   showgrid = FALSE,
+                                   showline = FALSE,
+                                   showticklabels = FALSE,
+                                   zeroline = FALSE),
+                      barmode = 'stack',
+                      paper_bgcolor = 'rgb(248, 248, 255)', plot_bgcolor = 'rgb(248, 248, 255)',
+                      margin = list(l = 125, r = 5, t = 50, b = 5),
+                      showlegend = FALSE) 
+# labeling the y-axis
+fig <- fig %>% add_annotations(xref = 'paper', yref = 'y', x = 0.14, y = y,
+                               xanchor = 'right',
+                               text = y,
+                               font = list(family = 'Arial', size = 11,
+                                           color = 'rgb(67, 67, 67)'),
+                               showarrow = FALSE, align = 'right') 
+# labeling the percentages of each bar (x_axis)
+fig <- fig %>% add_annotations(xref = 'x', yref = 'y',
+                               x = x1 / 2, y = y,
+                               text = paste(data[,"x1"], '%'),
+                               font = list(family = 'Arial', size = 12,
+                                           color = 'rgb(248, 248, 255)'),
+                               showarrow = FALSE) 
+fig <- fig %>% add_annotations(xref = 'x', yref = 'y',
+                               x = x1 + x2 / 2, y = y,
+                               text = paste(data[,"x2"], '%'),
+                               font = list(family = 'Arial', size = 12,
+                                           color = 'rgb(248, 248, 255)'),
+                               showarrow = FALSE) 
+fig <- fig %>% add_annotations(xref = 'x', yref = 'y',
+                               x = x1 + x2 + x3 / 2, y = y,
+                               text = paste(data[,"x3"], '%'),
+                               font = list(family = 'Arial', size = 12,
+                                           color = 'rgb(248, 248, 255)'),
+                               showarrow = FALSE) 
+fig <- fig %>% add_annotations(xref = 'x', yref = 'y',
+                               x = x1 + x2 + x3 + x4 / 2, y = y,
+                               text = paste(data[,"x4"], '%'),
+                               font = list(family = 'Arial', size = 12,
+                                           color = 'rgb(248, 248, 255)'),
+                               showarrow = FALSE) 
+# labeling the first Likert scale (on the top)
+fig <- fig %>% add_annotations(xref = 'x', yref = 'paper',
+                               x = c(25 / 2, 25 + 25 / 2, 25 + 25 + 25 / 2, 25 + 25 + 25 + 25 / 2),
+                               y = 1.05,
+                               text = top_labels,
+                               font = list(family = 'Arial', size = 12,
+                                           color = 'rgb(67, 67, 67)'),
+                               showarrow = FALSE)
+
+fig
 ```
 
+> Fuente: Elaboración de Aru en base a Sondeo de Aru
 
-Column {.tabset}
+Column {.tabset} 
 -------------------------------------
-### Alimentación
+### Alimentación 
     
 ```{r}
-library(plotly)
 y1<-round(prop.table(table(aru$s3_2_2_1)[-1])*100,2)
-x1<-c("Compró  alimentos suficientes","Compro menos alimentos que antes","No compró alimentos")
+x1<-c("Compró suficientes","Compro menos que antes","No compró")
 fig1 <- plot_ly(
   x = "",
   y = y1,
   name = x1,
   type = "bar",
   color=c("#99ff99","#9999ff","#ff9999" )
-)
+) %>% layout(title="Respecto a la anterior semana: En cuanto Alimentos")
 fig1
 ```
 
-### Salud
+> Fuente: Elaboración de Aru en base a Sondeo de Aru
+
+### Salud 
     
 ```{r}
 y2<-round(prop.table(table(aru$s3_2_2_2)[-1])*100,2)
@@ -243,11 +327,13 @@ fig2 <- plot_ly(
   name = x2,
   type = "bar",
   color=c("#99ff99","#9999ff","#ff9999" )
-)
+) %>% layout(title="Respecto a la anterior semana: En cuanto a Salud")
 fig2
 ```
 
-### Empleo
+> Fuente: Elaboración de Aru en base a Sondeo de Aru
+
+### Empleo 
     
 ```{r}
 y3<-round(prop.table(table(aru$s3_2_2_3)[-1])*100,2)
@@ -258,23 +344,26 @@ fig3 <- plot_ly(
   name = x3,
   type = "bar",
   color=c("#99ff99","#9999ff","#ff9999" )
-)
+) %>% layout(title="Respecto a la anterior semana: En cuanto a Empleo")
 fig3
 ```
    
+> Fuente: Elaboración de Aru en base a Sondeo de Aru
 
-### Ingresos
+### Ingresos 
     
 ```{r}
 y4<-round(prop.table(table(aru$s3_2_2_4)[-1])*100,2)
-x4<-c("Sus ingresos subieron","Sus ingresos se mantuvieron ","Tiene menos ingresos de dinero","Ya no genera ingresos")
+x4<-c("Subieron","Se mantuvieron ","Disminuyeron","Ya no genera")
 fig4 <- plot_ly(
   x = "",
   y = y4,
   name = x4,
   type = "bar",
   color=mis.colores.3(4)
-)
+) %>% layout(title="Respecto a la anterior semana: En cuanto a Ingresos:")
 fig4
-```   
+```
+
+> Fuente: Elaboración de Aru en base a Sondeo de Aru
    
