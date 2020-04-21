@@ -194,7 +194,7 @@ kable_styling(kable(tt2[,4:6]),bootstrap_options = "striped")
 
 ```{r}
 library(haven)
-aru<-read_dta("/Users/alvarolimber/Box Sync/covid19_survey/data/covid_v1.dta")
+aru<-read_dta(url("https://github.com/ARUFoundation/COVID/raw/master/covid_v1.dta"))
 #mediano plazo
 tb1<-rbind(table(aru$s3_2_1_1),
 table(aru$s3_2_1_2),
