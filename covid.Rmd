@@ -150,7 +150,7 @@ Row
 ```{r,echo=F}
 library(dplyr)
 library(survey)
-load("~/Documents/GitHub/EST-384/data/eh18.Rdata")
+load(url("https://github.com/AlvaroLimber/EST-384/raw/master/data/eh18.Rdata"))
 eh18p<-rename(eh18p,"edad"="s02a_03")
 eh18p<-eh18p %>% mutate(am=edad>=60)
 aux<-levels(eh18p$s04a_01a)
