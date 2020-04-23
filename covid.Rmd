@@ -53,6 +53,34 @@ bdr<-aggregate(bdr[,days],list(bdr$Country.Region),sum)
 bdd<-aggregate(bdd[,days],list(bdd$Country.Region),sum)
 #save(bdc,bdr,bdd,file="/Users/alvarolimber/Documents/GitHub/EST-383/data/covid-19.Rdata")
 ```
+
+```{r}
+library(rvest)
+ww<-read_html("https://www.worldometers.info/coronavirus/")
+wt<-html_table(ww)
+i<-which(wt[[1]]$`Country,Other`=="Bolivia")
+wbol<-wt[[1]][i,]
+```
+
+
+Introducción  {.sidebar}
+===============================================================
+
+### Motivación
+Al comenzar el 2020, Bolivia salía de una crisis política y enfrentaba una desaceleración económica con pérdidas previsibles en el bienestar de la población, a lo que suma la necesidad de enfrentar la pandemia del Covid-19 a través de medidas de salud pública que intentan evitar contagios masivos.
+
+Fundación Aru está desarrollando una agenda de seguimiento a los efectos económicos y sociales del Covid-19 combinando información de distintas fuentes, tanto las encuestas de hogares e información secundaria, como datos de fuente primaria proveniente de encuestas propias.
+
+### Este Dashboard
+En el marco de esta iniciativa se desarrolla este Dashboard *"INFO COVID'19"*, que incluye:
+
+* **Reportes:** Genera indicadores de seguimiento respecto el contagio, se actualiza de forma diaria.
+* **Población vulnerable** Se realizan estimaciones de la población vulnerable al COVID en el país, empleando la EH-2018 del INE.
+* **Encuesta de Monitoreo:** Presentan los resultados de los sondeos que realiza Aru mediante encuestas telefónicas y encuestas online, la muestra alcanza alrededor de 1000 individuos en Bolivia. 
+
+### Desarrollado por
+Unidad de Microdatos y encuestas, Fundacion Aru
+
 Reportes
 ===============================================================
 Row 
@@ -82,6 +110,21 @@ valueBox(rate1, icon = "fa-skull",color = "brown")
 ```{r}
 rate2<-round(bd$contador$recuperados/bd$contador$confirmados,4)*100
 valueBox(rate2, icon = "fa-heartbeat",color = "darkgreen")
+```
+
+### Contagios por Millón
+```{r}
+valueBox(wbol$`Tot Cases/1M pop`, icon = "fa-users",color = "brown")
+```
+
+### Decesos por Millón
+```{r}
+valueBox(wbol$`Deaths/1M pop`, icon = "fa-users",color = "grey")
+```
+
+### Tests por Millón
+```{r}
+valueBox(wbol$`Tests/1M pop`, icon = "fa-flask",color = "darkblue")
 ```
 
 Row 
@@ -164,7 +207,7 @@ tt1<-rbind(svytable(~diabetes,design = sd18p),
 svytable(~hiper,design = sd18p),
 svytable(~corazon,design = sd18p))
 tt1<-round(tt1,0)
-b2<-barplot((prop.table(tt1,1)*100)[,2],ylim = c(0,2.5),names.arg = c("Diabetes","Hipertensión","Cardiacos"))
+b2<-barplot((prop.table(tt1,1)*100)[,2],ylim = c(0,2.5),names.arg = c("Diabetes","Hipertensión","Cardíacos"))
 text(b2,(prop.table(tt1,1)*100)[,2],paste0(round((prop.table(tt1,1)*100)[,2],2),"%"),pos = 1)
 text(b2,(prop.table(tt1,1)*100)[,2],paste0(tt1[,2]," Personas"),pos = 3)
 ```
@@ -293,7 +336,7 @@ fig <- fig %>% add_annotations(xref = 'x', yref = 'paper',
 fig
 ```
 
-> Fuente: Elaboración de Aru en base a Sondeo de Aru
+> Fuente: Elaboración de Aru en base a Sondeo de Aru. Periodo de referencia: 12 al 20 de Abril de 2020
 
 Column {.tabset} 
 -------------------------------------
@@ -348,7 +391,7 @@ fig3 <- plot_ly(
 fig3
 ```
    
-> Fuente: Elaboración de Aru en base a Sondeo de Aru
+> Fuente: Elaboración de Aru en base a Sondeo de Aru. Periodo de referencia: 12 al 20 de Abril de 2020.
 
 ### Ingresos 
     
@@ -365,5 +408,5 @@ fig4 <- plot_ly(
 fig4
 ```
 
-> Fuente: Elaboración de Aru en base a Sondeo de Aru
+> Fuente: Elaboración de Aru en base a Sondeo de Aru. Periodo de referencia: 12 al 20 de Abril de 2020.
    
