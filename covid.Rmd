@@ -25,7 +25,7 @@ rbol<-sum(bd$recuperados)
 t1<-bd %>% select(municipio,positivos,decesos,recuperados) %>% filter(positivos>0)
 o<-order(t1$positivos,decreasing = T)
 t1<-t1[o,]
-names(t1)<-c("Municipio","Contagios","Decesos","Recuperados")
+names(t1)<-c("Municipio","Infectados","Decesos","Recuperados")
 #bd <- fromJSON("https://www.boliviasegura.gob.bo/wp-content/json/api.php")
 #aux<-lapply(bd$departamento,as.data.frame)
 #t1<-aux[[1]]
@@ -97,7 +97,7 @@ Reportes
 ===============================================================
 Row 
 ---------------------------------------------------------------
-### Confirmados
+### Infectados
 ```{r}
 valueBox(cbol, icon = "fa-procedures",color = "brown")
 ```
