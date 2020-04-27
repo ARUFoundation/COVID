@@ -14,18 +14,30 @@ output:
 library(flexdashboard)
 library(jsonlite)
 library(dplyr)
-bd <- fromJSON("https://www.boliviasegura.gob.bo/wp-content/json/api.php")
-aux<-lapply(bd$departamento,as.data.frame)
-t1<-aux[[1]]
-for(i in 2:9){
-t1<-rbind(t1,aux[[i]])
-}
-t1<-t1[,1:5]
-t1<-as.matrix(t1)
-colnames(t1)<-unlist(strsplit(colnames(t1),"[.]"))[rep(c(F,T),5)]
-t1<-addmargins(t1)
-colnames(t1)[6]<-"Total"
-rownames(t1)<-c("LP","CB","SC","OR","PT","TJ","CH","BN","PD","TOTAL")
+bd<-fromJSON("https://juliael.carto.com/api/v2/sql?q=select*from%20public.capital_municipios_covid19")
+bd<-bd$rows
+bd$decesos[is.na(bd$decesos)]<-0
+bd$recuperados[is.na(bd$recuperados)]<-0
+cbol<-sum(bd$positivos)
+dbol<-sum(bd$decesos)
+rbol<-sum(bd$recuperados)
+
+t1<-bd %>% select(municipio,positivos,decesos,recuperados) %>% filter(positivos>0)
+o<-order(t1$positivos,decreasing = T)
+t1<-t1[o,]
+names(t1)<-c("Municipio","Contagios","Decesos","Recuperados")
+#bd <- fromJSON("https://www.boliviasegura.gob.bo/wp-content/json/api.php")
+#aux<-lapply(bd$departamento,as.data.frame)
+#t1<-aux[[1]]
+#for(i in 2:9){
+#t1<-rbind(t1,aux[[i]])
+#}
+#t1<-t1[,1:5]
+#t1<-as.matrix(t1)
+#colnames(t1)<-unlist(strsplit(colnames(t1),"[.]"))[rep(c(F,T),5)]
+#t1<-addmargins(t1)
+#colnames(t1)[6]<-"Total"
+#rownames(t1)<-c("LP","CB","SC","OR","PT","TJ","CH","BN","PD","TOTAL")
 ```
 
 ```{r,echo=F,message=FALSE}
@@ -87,28 +99,28 @@ Row
 ---------------------------------------------------------------
 ### Confirmados
 ```{r}
-valueBox(bd$contador$confirmados, icon = "fa-procedures",color = "brown")
+valueBox(cbol, icon = "fa-procedures",color = "brown")
 ```
 
 ### Decesos
 ```{r}
-valueBox(bd$contador$decesos, icon = "fa-skull",color = "grey")
+valueBox(dbol, icon = "fa-skull",color = "grey")
 ```
 
 ### Recuperados
 ```{r}
-valueBox(bd$contador$recuperados, icon = "fa-heartbeat",color = "green")
+valueBox(rbol, icon = "fa-heartbeat",color = "green")
 ```
 
 ### Tasa de letalidad
 ```{r}
-rate1<-round(bd$contador$decesos/bd$contador$confirmados,4)*100
+rate1<-round(dbol/cbol,4)*100
 valueBox(rate1, icon = "fa-skull",color = "brown")
 ```
 
 ### Tasa de recuperación
 ```{r}
-rate2<-round(bd$contador$recuperados/bd$contador$confirmados,4)*100
+rate2<-round(rbol/cbol,4)*100
 valueBox(rate2, icon = "fa-heartbeat",color = "darkgreen")
 ```
 
@@ -130,11 +142,11 @@ valueBox(wbol$`Tests/1M pop`, icon = "fa-flask",color = "darkblue")
 Row 
 ---------------------------------------------------------------
 
-### Reporte por departamento
+### Reporte por Municipio
 ```{r}
 library(knitr)
 library(kableExtra)
-kable_styling(kable(t1),bootstrap_options = "striped")
+kable_styling(kable(t1,row.names = F),bootstrap_options = "striped")
 ```
 
 > Fuente: Elaboración de Aru en base a información de [Bolivia Segura](https://www.boliviasegura.gob.bo)
