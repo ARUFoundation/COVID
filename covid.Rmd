@@ -78,7 +78,7 @@ wbol<-wt[[1]][i,]
 Introducción  {.sidebar}
 ===============================================================
 
-### Motivación
+### Motivación 2020
 Al comenzar el 2020, Bolivia salía de una crisis política y enfrentaba una desaceleración económica con pérdidas previsibles en el bienestar de la población, a lo que suma la necesidad de enfrentar la pandemia del Covid-19 a través de medidas de salud pública que intentan evitar contagios masivos.
 
 Fundación Aru está desarrollando una agenda de seguimiento a los efectos económicos y sociales del Covid-19 combinando información de distintas fuentes, tanto las encuestas de hogares e información secundaria, como datos de fuente primaria proveniente de encuestas propias.
